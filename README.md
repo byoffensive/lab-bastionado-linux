@@ -8,7 +8,7 @@
 ## 🏢 Contexto del Escenario
 Una empresa hipotética despliega un nuevo servidor web corporativo basado en **Ubuntu Server 22.04 LTS**. Al realizar una auditoría preliminar, se detecta que el servidor cuenta con la configuración de fábrica (servicios de texto plano activados, puertos de administración expuestos y políticas de contraseñas débiles), lo que lo hace altamente vulnerable a ataques automatizados y botnets.
 
-**Objetivo:** Transformar este servidor vulnerable en una fortaleza digital (Bastionado), garantizando la confidencialidad de las comunicaciones y mitigando riesgos de acceso no autorizado, manteniendo la operatividad del servicio web.
+**Objetivo:** Transformar este servidor vulnerable en un sitio seguro (bastionado), garantizando la confidencialidad de las comunicaciones y mitigando riesgos de acceso no autorizado, manteniendo la operatividad del servicio web.
 
 ## 🛠️ Stack Tecnológico
 <p>
