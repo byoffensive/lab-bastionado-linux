@@ -1,10 +1,14 @@
 <div align="center">
   <h1>🛡️ Hardening y Bastionado de Servidores Linux</h1>
-  <p><i>Configuración integral de seguridad, control de acceso y auditoría sobre Ubuntu Server</i></p>
+  <p><i>Auditoría, control de acceso y securización perimetral de un entorno corporativo</i></p>
 </div>
 
-## 📝 Descripción del Proyecto
-Este repositorio documenta el proceso completo de securización de un servidor **Ubuntu Server 22.04 LTS**. El objetivo de este laboratorio es reducir drásticamente la superficie de ataque, cifrar las comunicaciones y fortificar los accesos mediante políticas estrictas, superando con éxito auditorías de red.
+<br>
+
+## 🏢 Contexto del Escenario
+Una empresa hipotética despliega un nuevo servidor web corporativo basado en **Ubuntu Server 22.04 LTS**. Al realizar una auditoría preliminar, se detecta que el servidor cuenta con la configuración de fábrica (servicios de texto plano activados, puertos de administración expuestos y políticas de contraseñas débiles), lo que lo hace altamente vulnerable a ataques automatizados y botnets.
+
+**Objetivo:** Transformar este servidor vulnerable en una fortaleza digital (Bastionado), garantizando la confidencialidad de las comunicaciones y mitigando riesgos de acceso no autorizado, manteniendo la operatividad del servicio web.
 
 ## 🛠️ Stack Tecnológico
 <p>
@@ -16,15 +20,16 @@ Este repositorio documenta el proceso completo de securización de un servidor *
 
 ---
 
-## 🔒 Fases del Despliegue y Securización
+## 🔒 Ejecución Técnica y Fases de Securización
 
-### 1. Cifrado Web y VirtualHosts (Apache + SSL)
-Para garantizar la confidencialidad de los datos en tránsito, se configuró Apache2 para servir contenido exclusivamente a través del puerto seguro 443.
-* **Módulo SSL:** Activación mediante `a2enmod ssl`.
-* **Certificados:** Generación de un certificado autofirmado (clave pública y privada) asignado al dominio `ejemplo.prueba`.
-* **VirtualHost:** Redirección estricta y configuración del archivo de sitio seguro.
+### 1. Garantizando la Confidencialidad: Cifrado Web (Apache + SSL)
+El primer vector de ataque a mitigar es la interceptación de tráfico (Man-in-the-Middle). Se procedió a deshabilitar el puerto 80 (HTTP) y forzar que toda la comunicación se realice mediante túneles seguros utilizando el módulo SSL de Apache2. Se generó un certificado autofirmado y se configuró el *VirtualHost* para imponer restricciones de directorio.
 
-**Fragmento de la configuración aplicada (`ejemplo.prueba-ssl.conf`):**
+<details>
+  <summary><b>📸(Código del VirtualHost)</b></summary>
+  
+  <br>
+
 ```apache
 <VirtualHost *:443>
     ServerName ejemplo.prueba
@@ -41,15 +46,26 @@ Para garantizar la confidencialidad de los datos en tránsito, se configuró Apa
     </Directory>
 </VirtualHost>
 ```
+</details>
 
-### 2. Hardening de Acceso Remoto (SSH)
-La configuración por defecto de SSH supone un riesgo crítico frente a ataques de fuerza bruta y diccionarios. Se editó el archivo `/etc/ssh/sshd_config`:
+<br>
+
+### 2. Blindando la Administración: Hardening de OpenSSH
+Una vez asegurada la capa web, el siguiente paso crítico fue proteger la puerta de entrada de los administradores. Se intervino el archivo `/etc/ssh/sshd_config` aplicando políticas de mínimo privilegio:
 * **Cambio de Puerto:** Traslado del servicio del puerto 22 al **2222**.
 * **Bloqueo de Root:** Deshabilitación del inicio de sesión directo para el superusuario (`PermitRootLogin no`).
 * **Troubleshooting:** Resolución de conflictos con `systemd sockets` (activación por socket introducida en versiones recientes de Ubuntu) que mantenían el puerto 22 abierto, forzando la deshabilitación del socket y recarga del demonio principal.
 
-> <img width="1890" height="1178" alt="image" src="https://github.com/user-attachments/assets/ba77495f-1707-4658-a2b5-c418d432fe29" />
- 
+<details>
+  <summary><b>📸 (Status SSH)</b></summary>
+  
+  <br>
+  <p align="center">
+    <img src="https://github.com/user-attachments/assets/ba77495f-1707-4658-a2b5-c418d432fe29" width="800">
+  </p>
+</details>
+
+<br>
 
 ### 3. Políticas de Contraseñas Estrictas (PAM)
 Se implementó el módulo Pluggable Authentication Modules (`libpam-pwquality`) para erradicar el uso de credenciales débiles, forzando matemáticamente una alta entropía:
@@ -57,12 +73,20 @@ Se implementó el módulo Pluggable Authentication Modules (`libpam-pwquality`) 
 * Obligatoriedad de combinación de mayúsculas, minúsculas y números (`ucredit=-1`, `lcredit=-1`, `dcredit=-1`).
 * Bloqueo temporal del cambio tras **3 intentos fallidos** (`retry=3`).
 
-> <img width="919" height="524" alt="image" src="https://github.com/user-attachments/assets/e77202bf-e6bf-4c26-9145-b7a5523410ec" />
+<details>
+  <summary><b>📸 (Políticas PAM)</b></summary>
+  
+  <br>
+  <p align="center">
+    <img src="https://github.com/user-attachments/assets/e77202bf-e6bf-4c26-9145-b7a5523410ec" width="800">
+    <br><br>
+    <img src="https://github.com/user-attachments/assets/ea0c58ba-2708-4deb-b926-deaebb6aff40" width="800">
+    <br><br>
+    <img src="https://github.com/user-attachments/assets/1416ed1b-41c8-4464-81b9-b310eed9518f" width="800">
+  </p>
+</details>
 
-> <img width="964" height="472" alt="image" src="https://github.com/user-attachments/assets/ea0c58ba-2708-4deb-b926-deaebb6aff40" />
-
-> <img width="976" height="465" alt="image" src="https://github.com/user-attachments/assets/1416ed1b-41c8-4464-81b9-b310eed9518f" />
-
+<br>
 
 ### 4. Auditoría de Superficie de Ataque (Nmap)
 Para validar la eficacia del bastionado, se asumió el rol de auditor lanzando escaneos desde una máquina cliente externa en la red local:
@@ -70,8 +94,20 @@ Para validar la eficacia del bastionado, se asumió el rol de auditor lanzando e
 * **Escaneo Completo:** Auditoría exhaustiva a los 65535 puertos lógicos (`-p-`).
 * **Mitigación:** Verificación del cierre de puertos innecesarios (como FTP plano en puerto 21) e implementación de reglas en el firewall perimetral `UFW`.
 
-> <img width="852" height="664" alt="image" src="https://github.com/user-attachments/assets/373da8ed-b67d-4a3b-9adb-962d80cbdba7" />
-
+<details>
+  <summary><b>📸 (Salida de Nmap)</b></summary>
+  
+  <br>
+  <p align="center">
+    <img src="https://github.com/user-attachments/assets/373da8ed-b67d-4a3b-9adb-962d80cbdba7" width="800">
+  </p>
+</details>
 
 ---
+
+## 🎯 Impacto y Resultados
+Tras la intervención, la superficie de exposición del servidor se redujo a la mínima expresión. Se eliminaron protocolos obsoletos de texto plano, se dificultó el éxito de escaneos automatizados de botnets mediante la ofuscación del puerto SSH, y se garantizó la integridad del acceso local mediante políticas PAM inquebrantables. El servidor ahora cumple con estándares de seguridad corporativos.
+
+<br>
+
 *Este proyecto forma parte de mi portfolio técnico. Puedes ver más casos de estudio en mi [perfil principal de GitHub](https://github.com/byoffensive).*
