@@ -22,9 +22,25 @@ Este repositorio documenta el proceso completo de securización de un servidor *
 Para garantizar la confidencialidad de los datos en tránsito, se configuró Apache2 para servir contenido exclusivamente a través del puerto seguro 443.
 * **Módulo SSL:** Activación mediante `a2enmod ssl`.
 * **Certificados:** Generación de un certificado autofirmado (clave pública y privada) asignado al dominio `ejemplo.prueba`.
-* **VirtualHost:** Redirección estricta y configuración del archivo `ejemplo.prueba-ssl.conf`.
+* **VirtualHost:** Redirección estricta y configuración del archivo de sitio seguro.
 
-> **📸 **
+**Fragmento de la configuración aplicada (`ejemplo.prueba-ssl.conf`):**
+```apache
+<VirtualHost *:443>
+    ServerName ejemplo.prueba
+    DocumentRoot /var/www/ejemplo.prueba
+    
+    SSLEngine on
+    SSLCertificateFile /etc/ssl/private/ejemplo.prueba
+    SSLCertificateKeyFile /etc/ssl/private/ejemplo.prueba
+    
+    <Directory /var/www/ejemplo.prueba>
+        Options FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+```
 
 ### 2. Hardening de Acceso Remoto (SSH)
 La configuración por defecto de SSH supone un riesgo crítico frente a ataques de fuerza bruta y diccionarios. Se editó el archivo `/etc/ssh/sshd_config`:
@@ -32,7 +48,8 @@ La configuración por defecto de SSH supone un riesgo crítico frente a ataques 
 * **Bloqueo de Root:** Deshabilitación del inicio de sesión directo para el superusuario (`PermitRootLogin no`).
 * **Troubleshooting:** Resolución de conflictos con `systemd sockets` (activación por socket introducida en versiones recientes de Ubuntu) que mantenían el puerto 22 abierto, forzando la deshabilitación del socket y recarga del demonio principal.
 
-> **📸 **
+> <img width="1890" height="1178" alt="image" src="https://github.com/user-attachments/assets/ba77495f-1707-4658-a2b5-c418d432fe29" />
+ 
 
 ### 3. Políticas de Contraseñas Estrictas (PAM)
 Se implementó el módulo Pluggable Authentication Modules (`libpam-pwquality`) para erradicar el uso de credenciales débiles, forzando matemáticamente una alta entropía:
@@ -40,7 +57,12 @@ Se implementó el módulo Pluggable Authentication Modules (`libpam-pwquality`) 
 * Obligatoriedad de combinación de mayúsculas, minúsculas y números (`ucredit=-1`, `lcredit=-1`, `dcredit=-1`).
 * Bloqueo temporal del cambio tras **3 intentos fallidos** (`retry=3`).
 
-> **📸 **
+> <img width="919" height="524" alt="image" src="https://github.com/user-attachments/assets/e77202bf-e6bf-4c26-9145-b7a5523410ec" />
+
+> <img width="964" height="472" alt="image" src="https://github.com/user-attachments/assets/ea0c58ba-2708-4deb-b926-deaebb6aff40" />
+
+> <img width="976" height="465" alt="image" src="https://github.com/user-attachments/assets/1416ed1b-41c8-4464-81b9-b310eed9518f" />
+
 
 ### 4. Auditoría de Superficie de Ataque (Nmap)
 Para validar la eficacia del bastionado, se asumió el rol de auditor lanzando escaneos desde una máquina cliente externa en la red local:
@@ -48,7 +70,8 @@ Para validar la eficacia del bastionado, se asumió el rol de auditor lanzando e
 * **Escaneo Completo:** Auditoría exhaustiva a los 65535 puertos lógicos (`-p-`).
 * **Mitigación:** Verificación del cierre de puertos innecesarios (como FTP plano en puerto 21) e implementación de reglas en el firewall perimetral `UFW`.
 
-> **📸 **
+> <img width="852" height="664" alt="image" src="https://github.com/user-attachments/assets/373da8ed-b67d-4a3b-9adb-962d80cbdba7" />
+
 
 ---
 *Este proyecto forma parte de mi portfolio técnico. Puedes ver más casos de estudio en mi [perfil principal de GitHub](https://github.com/byoffensive).*
